@@ -14,34 +14,13 @@ let s:POPUP_WINDOW_AVAILABLE = exists('*popup_atcursor')
 " timers to control throttling
 let s:timers = {}
 
-if !hlexists('LanguageClientCodeLens')
-  hi link LanguageClientCodeLens Title
-endif
-
-if !hlexists('LanguageClientWarningSign')
-  hi link LanguageClientWarningSign todo
-endif
-
-if !hlexists('LanguageClientWarning')
-  hi link LanguageClientWarning SpellCap
-endif
-
-if !hlexists('LanguageClientInfoSign')
-  hi link LanguageClientInfoSign LanguageClientWarningSign
-endif
-
-if !hlexists('LanguageClientInfo')
-  hi link LanguageClientInfo LanguageClientWarning
-endif
-
-if !hlexists('LanguageClientErrorSign')
-  hi link LanguageClientErrorSign error
-endif
-
-if !hlexists('LanguageClientError')
-  hi link LanguageClientError SpellBad
-endif
-
+hi link LanguageClientCodeLens Title
+hi link LanguageClientWarningSign todo
+hi link LanguageClientWarning SpellCap
+hi link LanguageClientInfoSign LanguageClientWarningSign
+hi link LanguageClientInfo LanguageClientWarning
+hi link LanguageClientErrorSign error
+hi link LanguageClientError SpellBad
 
 function! s:AddPrefix(message) abort
     return '[LC] ' . a:message
@@ -316,8 +295,13 @@ endfunction
 
 " Batch version of `matchdelete()`.
 function! s:MatchDelete(ids) abort
+    echom "Batch deleting ".string(len(a:ids))
     for l:id in a:ids
-        call matchdelete(l:id)
+        if matchdelete(l:id) == 0
+            echom "Deleted ".l:id
+        else
+            echom "Failed to delete ".l:id
+        endif
     endfor
 endfunction
 
@@ -338,6 +322,7 @@ endfunction
 
 " Batch version of nvim_buf_add_highlight
 function! s:AddHighlights(namespace, highlights) abort
+  echom "Batch adding ".string(len(a:highlights))
   if has('nvim')
     let l:namespace_id = nvim_create_namespace(a:namespace)
     for hl in a:highlights
@@ -347,6 +332,7 @@ function! s:AddHighlights(namespace, highlights) abort
     let match_ids = []
     for hl in a:highlights
       let match_id = matchaddpos(hl.group, [[hl.line + 1, hl.character_start + 1, hl.character_end - hl.character_start]])
+      echom "Added match ".(string(match_id))." : ".(string(hl.group))." : ".(string([[hl.line + 1, hl.character_start + 1, hl.character_end - hl.character_start]]))
       let match_ids = add(match_ids, match_id)
     endfor
 
@@ -367,7 +353,14 @@ function! s:ClearHighlights(namespace) abort
     let match_ids = get(b:, a:namespace . '_IDS', [])
     for mid in match_ids
       " call inside a try/catch to avoid error for manually cleared matches
-      try | call matchdelete(mid) | catch
+      try
+        if matchdelete(mid) == -1
+            echom "Failed to delete match ".(string(mid))
+        else
+            echom "Deleted match ".(string(mid))
+        endif
+      catch
+        echom "Failed to delete match ".(string(mid))
       endtry
     endfor
     call setbufvar(bufname(), a:namespace . '_IDS', [])

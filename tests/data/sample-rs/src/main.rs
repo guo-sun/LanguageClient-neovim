@@ -15,6 +15,8 @@ mod libs;
 use libs::yo;
 fn ref_in_main() -> i32 {
     yo() + 1
+
+    gree()
 }
 
 #[cfg(feature = "f42")]

@@ -489,9 +489,9 @@ impl LanguageClient {
         if !self.get_config(|c| c.is_nvim)? {
             // Clear old highlights.
             let ids = self.get_state(|state| state.highlight_match_ids.clone())?;
-            self.vim()?
-                .rpcclient
-                .notify("s:MatchDelete", json!([ids]))?;
+            // self.vim()?
+            //     .rpcclient
+            //     .notify("s:MatchDelete", json!([ids]))?;
 
             // Group diagnostics by severity so we can highlight them
             // in a single call.
@@ -549,11 +549,11 @@ impl LanguageClient {
                     })
                     .collect();
 
-                let match_id = self
-                    .vim()?
-                    .rpcclient
-                    .call("matchaddpos", json!([hl_group, ranges]))?;
-                new_match_ids.push(match_id);
+                // let match_id = self
+                //     .vim()?
+                //     .rpcclient
+                //     .call("matchaddpos", json!([hl_group, ranges]))?;
+                // new_match_ids.push(match_id);
             }
             self.update_state(|state| {
                 state.highlight_match_ids = new_match_ids;
